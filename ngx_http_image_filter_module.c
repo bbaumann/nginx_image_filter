@@ -44,6 +44,7 @@ typedef struct {
     ngx_uint_t                   angle;
     ngx_uint_t                   jpeg_quality;
     ngx_uint_t                   sharpen;
+    ngx_uint_t                   render_copy;
 
     ngx_flag_t                   transparency;
     ngx_flag_t                   interlace;
@@ -73,6 +74,7 @@ typedef struct {
     ngx_uint_t                   phase;
     ngx_uint_t                   type;
     ngx_uint_t                   force;
+    ngx_uint_t                   render_copy;
 } ngx_http_image_filter_ctx_t;
 
 
@@ -555,6 +557,8 @@ ngx_http_image_process(ngx_http_request_t *r)
     if (ctx->max_height == 0) {
         return NULL;
     }
+    
+    ctx->render_copy = conf->render_copy;
 
     if (rc == NGX_OK
         && ctx->width <= ctx->max_width
@@ -562,6 +566,11 @@ ngx_http_image_process(ngx_http_request_t *r)
         && ctx->angle == 0
         && !ctx->force)
     {
+        if (ctx->render_copy)
+        {
+            return ngx_http_image_copy(r, ctx);
+        }
+        //else
         return ngx_http_image_asis(r, ctx);
     }
 
@@ -897,6 +906,12 @@ ngx_http_image_resize(ngx_http_request_t *r, ngx_http_image_filter_ctx_t *ctx)
         && (ngx_uint_t) sy <= ctx->max_height)
     {
         gdImageDestroy(src);
+        
+        if (ctx->render_copy)
+        {
+            return ngx_http_image_copy(r, ctx);
+        }
+        //else
         return ngx_http_image_asis(r, ctx);
     }
 
@@ -1312,6 +1327,7 @@ ngx_http_image_filter_create_conf(ngx_conf_t *cf)
      *     conf->width = 0;
      *     conf->height = 0;
      *     conf->angle = 0;
+     *     conf->render_copy = 0;
      *     conf->wcv = NULL;
      *     conf->hcv = NULL;
      *     conf->acv = NULL;
@@ -1346,6 +1362,7 @@ ngx_http_image_filter_merge_conf(ngx_conf_t *cf, void *parent, void *child)
             conf->width = prev->width;
             conf->height = prev->height;
             conf->angle = prev->angle;
+            conf->render_copy = prev->render_copy;
             conf->wcv = prev->wcv;
             conf->hcv = prev->hcv;
             conf->acv = prev->acv;
@@ -1461,10 +1478,11 @@ ngx_http_image_filter(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     if (ngx_strcmp(value[i].data, "resize") == 0) {
         imcf->filter = NGX_HTTP_IMAGE_RESIZE;
-
+    } else if (ngx_strcmp(value[i].data, "resize_or_copy") == 0) {
+        imcf->filter = NGX_HTTP_IMAGE_RESIZE;
+        imcf->render_copy = 1;
     } else if (ngx_strcmp(value[i].data, "crop") == 0) {
         imcf->filter = NGX_HTTP_IMAGE_CROP;
-
     } else {
         goto failed;
     }
