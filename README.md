@@ -1,5 +1,5 @@
 # nginx_image_filter
-Patched Nginx Image Filter module to allow interlace, jpeg quality setting and sharpening even if no rotation/crop/resize is requested.
+This is basically the [Nginx Image Filter module](http://nginx.org/en/docs/http/ngx_http_image_filter_module.html) but patched to allow interlace, jpeg quality setting and sharpening even if no rotation/crop/resize is requested.
 
 This module is based upon nginx 1.6.2 image_filter module code.
 
