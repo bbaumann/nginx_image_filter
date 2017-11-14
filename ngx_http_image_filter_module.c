@@ -772,7 +772,7 @@ static ngx_buf_t *
 ngx_http_image_copy(ngx_http_request_t *r, ngx_http_image_filter_ctx_t *ctx)
 {
     int                            size,
-                                   colors, palette, transparent, sharpen,
+                                   colors, transparent, sharpen,
                                    red, green, blue;
     u_char                        *out;
     ngx_buf_t                     *b;
@@ -793,7 +793,6 @@ ngx_http_image_copy(ngx_http_request_t *r, ngx_http_image_filter_ctx_t *ctx)
         transparent = gdImageGetTransparent(src);
 
         if (transparent != -1) {
-            palette = colors;
             red = gdImageRed(src, transparent);
             green = gdImageGreen(src, transparent);
             blue = gdImageBlue(src, transparent);
@@ -802,7 +801,6 @@ ngx_http_image_copy(ngx_http_request_t *r, ngx_http_image_filter_ctx_t *ctx)
         }
     }
 
-    palette = 0;
     transparent = -1;
     red = 0;
     green = 0;
